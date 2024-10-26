@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREMIUM CAR RENTAL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(90deg, #FFDE6B 0%, #F3F8F0 100%);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        input[type="text"] {
+            width: 60%;
+            padding: 10px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        h1{
+            text-align: center;
+        }
+/* Dropdown styling */
+.dropdown {
+    position: absolute;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 60%; /* Adjusted width to match input field */
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+    border-radius: 8px;
+}
+
+.dropdown li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown li:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown li:last-child {
+    border-bottom: none;
+}
+
+
+/* Location details section */
+.location-details {
+    display: none;
+    margin-top: 20px;
+}
+
+.car-info-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; 
+    justify-content: space-between;
+}
+
+.car-info-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+    width: calc(33.333% - 20px); /* Three cards per row with space between */
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
+.car-info-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+    .car-info-card {
+        width: calc(50% - 20px); /* Two cards per row on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .car-info-card {
+        width: 100%; /* One card per row on very small screens */
+    }
+}
+
+.book-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.book-button:hover {
+    background-color: #0056b3;
+}
+
+    </style>
+</head>
+<body>
+    <div class="header__container" id="home">
+        <h1>PREMIUM CAR RENTAL</h1>
+        <div class="container">
+            <!-- Updated the input to search by location -->
+            <input type="text" id="locationSearch" placeholder="Enter location" oninput="filterLocations()" autocomplete="off" />
+            
+            <!-- Updated the dropdown for location search results -->
+            <ul id="locationDropdown" class="dropdown"></ul>
+            
+            <!-- Section to display car details based on selected location -->
+            <div id="locationDetails" class="location-details">
+                <!-- Div to display cars available at the selected location -->
+                <div id="carInfoList" class="car-info-list"></div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+       let cardData = [];
+
+// Fetch the CSV file and parse it
+function fetchCSV() {
+    Papa.parse('Rental.csv', {
+        download: true,
+        header: true,
+        complete: function(results) {
+            cardData = results.data;
+        },
+        error: function(error) {
+            console.error('Error fetching CSV:', error);
+        }
+    });
+}
+
+fetchCSV();
+
+// Filter locations based on input
+function filterLocations() {
+    const searchValue = document.getElementById("locationSearch").value.toLowerCase();
+    const dropdown = document.getElementById("locationDropdown");
+    dropdown.innerHTML = '';
+
+    const filteredLocations = cardData.filter(car => car.Location && car.Location.toLowerCase().includes(searchValue));
+
+    if (filteredLocations.length > 0 && searchValue.length > 0) {
+        dropdown.style.display = 'block';  
+
+        filteredLocations.forEach(car => {
+            const li = document.createElement('li');
+            li.textContent = car.Location;
+            li.addEventListener('click', () => displayLocationDetails(car.Location));
+            dropdown.appendChild(li);
+        });
+    } else {
+        dropdown.style.display = 'none';  
+    }
+}
+
+// Display car details based on selected location, including images
+function displayLocationDetails(selectedLocation) {
+    const dropdown = document.getElementById("locationDropdown");
+    const locationDetails = document.getElementById("locationDetails");
+    const carInfoList = document.getElementById("carInfoList");
+
+    dropdown.style.display = 'none';  
+
+    const carsAtLocation = cardData.filter(car => car.Location === selectedLocation);
+
+    carInfoList.innerHTML = '';
+
+    carsAtLocation.forEach(car => {
+        const carInfoCard = document.createElement('div');
+        carInfoCard.classList.add('car-info-card');
+
+        const carModel = document.createElement('h4');
+        carModel.textContent = `Model: ${car["Car Make/Model"]}`;
+
+        const carYear = document.createElement('p');
+        carYear.textContent = `Year: ${car.Year}`;
+
+        const rentalPrice = document.createElement('p');
+        rentalPrice.textContent = `Daily Rental Price: $${car["Daily Rental Price ($)"]}`;
+
+        const fuelType = document.createElement('p');
+        fuelType.textContent = `Fuel Type: ${car["Fuel Type"]}`;
+
+        const transmissionType = document.createElement('p');
+        transmissionType.textContent = `Transmission: ${car["Transmission"]}`;
+
+        const availabilityStatus = document.createElement('p');
+        availabilityStatus.textContent = `Availability: ${car["Availability"]}`;
+
+        // Add image if the Image column exists
+        if (car.Image) {
+            const carImage = document.createElement('img');
+            carImage.src = car.Image;
+            carImage.alt = `${car["Car Make/Model"]} image`;
+            carInfoCard.appendChild(carImage);
+        }
+
+        // Append details to the car info card
+        carInfoCard.appendChild(carModel);
+        carInfoCard.appendChild(carYear);
+        carInfoCard.appendChild(rentalPrice);
+        carInfoCard.appendChild(fuelType);
+        carInfoCard.appendChild(transmissionType);
+        carInfoCard.appendChild(availabilityStatus);
+
+        // Append car info card to the car info list
+        carInfoList.appendChild(carInfoCard);
+        // Add a Book button
+const bookButton = document.createElement('button');
+bookButton.textContent = 'Book';
+bookButton.classList.add('book-button');
+bookButton.addEventListener('click', () => {
+    window.location.href = `book.html?car=${encodeURIComponent(car["Car Make/Model"])}`;
+});
+
+carInfoCard.appendChild(bookButton);
+
+    });
+
+    locationDetails.style.display = 'block';  
+}
+
+    </script>
+</body>
+</html>
